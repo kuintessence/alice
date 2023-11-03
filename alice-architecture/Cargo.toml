@@ -1,0 +1,17 @@
+[package]
+name = "alice-architecture"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+alice-architecture-derive = { path = "../alice-architecture-derive", optional = true }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true, features = ["serde"] }
+chrono = { workspace = true }
+
+[features]
+derive = ["alice-architecture-derive"]

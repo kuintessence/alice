@@ -1,0 +1,62 @@
+[workspace]
+resolver = "2"
+members = [
+  "alice-architecture",
+  "alice-architecture-derive",
+  "alice-di",
+  "alice-di-derive",
+  "alice-infrastructure",
+  "alice-web",
+]
+
+[workspace.dependencies]
+alice-architecture = { path = "alice-architecture" }
+
+anyhow = "1"
+async-trait = "0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = "1.5"
+
+# for *derive* packages
+syn = { version = "2", features = ["full", "extra-traits"] }
+quote = "1"
+proc-macro2 = "1"
+heck = "0.4"
+actix-i18n = { git = "https://github.com/kuintessence/actix-i18n.git" }
+
+# for i18n enum
+thiserror = "1"
+
+# for event system 
+chrono = "0.4"
+
+# for infrastructure
+tokio = "1"
+flume = "0.11"
+futures-util = "0.3"
+# web
+actix-http = "3.4"
+actix-web = "4"
+url = "2.4"
+reqwest = { version = "0.11", default-features = false }
+reqwest-middleware = "0.2"
+# log
+tracing = "0.1"
+tracing-appender = "0.2"
+tracing-opentelemetry = "0.21"
+tracing-log = "0.2"
+tracing-subscriber = "0.3"
+opentelemetry = "0.20"
+opentelemetry-otlp = "0.13"
+log = "0.4"
+# data
+base64 = "0.21"
+config = "0.13"
+rdkafka = "0.34"
+sea-orm = { version = "0.12", default-features = false }
+task-local-extensions = "0"
+jsonwebtoken = "9.1"
+cmake = "0.1"
+[workspace.dependencies.database-model]
+git = "https://github.com/kuintessence/database"
