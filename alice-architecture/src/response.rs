@@ -4,9 +4,7 @@ use std::fmt::{Debug, Display};
 use serde::Serialize;
 
 #[cfg(feature = "derive")]
-pub mod derive {
-    pub use alice_architecture_derive::I18NEnum;
-}
+pub use alice_architecture_derive::I18NEnum;
 
 pub trait Locale {
     fn text_with_args(&self, id: &str, args: HashMap<String, String>) -> anyhow::Result<String>;

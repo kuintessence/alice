@@ -1,3 +1,5 @@
+use std::fmt::{Debug, Display};
+
 use actix_http::{
     body::BoxBody,
     header::{self},
@@ -8,7 +10,6 @@ use alice_architecture::response::I18NEnum;
 use base64::DecodeError;
 use serde::Serialize;
 use serde_json::json;
-use std::fmt::{Debug, Display};
 
 #[derive(Debug)]
 pub struct AliceError(pub Box<dyn I18NEnum + 'static>);
@@ -104,7 +105,7 @@ impl From<actix_http::header::ToStrError> for AliceError {
     }
 }
 
-#[derive(thiserror::Error, alice_architecture::response::derive::I18NEnum, Debug)]
+#[derive(Debug, thiserror::Error, I18NEnum)]
 pub enum AliceCommonError {
     #[status(500)]
     #[error("InternalError - cause: {source}")]
