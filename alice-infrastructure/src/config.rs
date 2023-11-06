@@ -223,7 +223,7 @@ pub struct MessageQueueConfig {
 
 pub struct RedisConfig {
     #[serde(default = "RedisConfig::default_urls")]
-    pub urls: Vec<String>,
+    pub urls: String,
     #[serde(default = "RedisConfig::default_exp_msecs")]
     pub exp_msecs: i64,
 }
@@ -237,8 +237,8 @@ impl Default for RedisConfig {
     }
 }
 impl RedisConfig {
-    fn default_urls() -> Vec<String> {
-        vec!["localhost:6379".to_string()]
+    fn default_urls() -> String {
+        "localhost:6379".to_string()
     }
     fn default_exp_msecs() -> i64 {
         24 * 60 * 60 * 1000
