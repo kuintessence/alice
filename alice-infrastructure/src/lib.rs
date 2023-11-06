@@ -13,4 +13,5 @@ pub mod error;
 pub mod middleware;
 #[cfg(feature = "telemetry")]
 pub mod telemetry;
+#[cfg(feature = "http-client")]
 pub mod http_client;

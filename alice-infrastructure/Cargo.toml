@@ -55,6 +55,7 @@ database-model = { workspace = true, optional = true }
 cmake = { workspace = true, optional = true }
 
 [features]
+http-client = ["reqwest"]
 actix-middleware = [
   "futures-util",
   "actix-web",
@@ -90,6 +91,7 @@ telemetry = [
 event-system = ["uuid"]
 error = ["actix-web"]
 full = [
+  "http-client",
   "sea-orm-db",
   "kafka-mq",
   "actix-middleware",
