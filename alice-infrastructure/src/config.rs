@@ -309,8 +309,6 @@ pub fn build_config() -> anyhow::Result<config::Config> {
         config::Environment::with_prefix("ALICE")
             .separator("__")
             .try_parsing(true)
-            .list_separator(";")
-            .with_list_parse_key("common.redis.urls"),
     );
     Ok(config.build()?)
 }
