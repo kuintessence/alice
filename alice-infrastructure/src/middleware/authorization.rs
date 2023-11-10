@@ -286,13 +286,13 @@ async fn get_user_id(
 ) -> anyhow::Result<Uuid> {
     let task_id = task_id.to_str()?.parse::<Uuid>()?;
     let con = database.get_connection();
-    let flow_instance_id = database_model::system::prelude::NodeInstanceEntity::find_by_id(task_id)
+    let flow_instance_id = database_model::prelude::NodeInstance::find_by_id(task_id)
         .one(con)
         .await?
         .ok_or(anyhow!("No such node: {task_id} in jwt validation."))?
         .flow_instance_id;
     Ok(
-        database_model::system::prelude::FlowInstanceEntity::find_by_id(flow_instance_id)
+        database_model::prelude::FlowInstance::find_by_id(flow_instance_id)
             .one(con)
             .await?
             .ok_or(anyhow!(
