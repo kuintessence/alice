@@ -2,11 +2,16 @@ use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
 
-use crate::model::AggregateRoot;
+use crate::{
+    model::AggregateRoot,
+    repository::{DbEntity, DbField},
+};
 
 use super::{Event, EventHandler};
 
-impl AggregateRoot for EventInfo {}
+impl AggregateRoot for EventInfo {
+    type UpdateEntity = DbEventInfo;
+}
 
 #[derive(Debug, Clone)]
 pub struct EventInfo {
@@ -27,7 +32,9 @@ impl TryFrom<Arc<dyn Event>> for EventInfo {
     }
 }
 
-impl AggregateRoot for EventHandlerInfo {}
+impl AggregateRoot for EventHandlerInfo {
+    type UpdateEntity = DbEventHandlerInfo;
+}
 
 pub struct EventHandlerInfo {
     /// Handler post url.
@@ -44,6 +51,45 @@ impl From<Arc<dyn EventHandler>> for EventHandlerInfo {
             post_url: value.post_url().to_owned(),
             types: value.handle_types().to_owned(),
             metadata: value.metadata(),
+        }
+    }
+}
+
+impl DbEntity for DbEventInfo {}
+
+pub struct DbEventInfo {
+    pub r#type: DbField<String>,
+    pub time: DbField<DateTime<Utc>>,
+    pub data: DbField<String>,
+}
+
+impl DbEntity for DbEventHandlerInfo {}
+
+pub struct DbEventHandlerInfo {
+    /// Handler post url.
+    pub post_url: DbField<String>,
+    /// Event types that the handler can handle.
+    pub types: DbField<Vec<String>>,
+    /// Handler metadata.
+    pub metadata: DbField<Option<String>>,
+}
+
+impl From<EventHandlerInfo> for DbEventHandlerInfo {
+    fn from(value: EventHandlerInfo) -> Self {
+        Self {
+            post_url: DbField::Set(value.post_url),
+            types: DbField::Set(value.types),
+            metadata: DbField::Set(value.metadata),
+        }
+    }
+}
+
+impl From<EventInfo> for DbEventInfo {
+    fn from(value: EventInfo) -> Self {
+        Self {
+            r#type: DbField::Set(value.r#type),
+            time: DbField::Set(value.time),
+            data: DbField::Set(value.data),
         }
     }
 }

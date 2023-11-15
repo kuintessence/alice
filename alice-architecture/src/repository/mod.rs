@@ -2,6 +2,26 @@ use uuid::Uuid;
 
 use crate::model::AggregateRoot;
 
+#[derive(Default)]
+/// Item that used in entity update.
+/// But because of Generic bound to T, so we need to use a item which implAggregateRoot as T.
+pub enum DbField<T = ()> {
+    Set(T),
+    #[default]
+    NotSet,
+}
+
+impl<T> DbField<T> {
+    pub fn value(&self) -> anyhow::Result<&T> {
+        match self {
+            DbField::Set(v) => Ok(v),
+            DbField::NotSet => Err(anyhow::anyhow!("DbField No value!")),
+        }
+    }
+}
+
+pub trait DbEntity {}
+
 #[async_trait::async_trait]
 pub trait LeaseRepository<T>: Send + Sync
 where
@@ -39,7 +59,7 @@ pub trait MutableRepository<T>: Send + Sync
 where
     T: AggregateRoot,
 {
-    async fn update(&self, entity: &T) -> anyhow::Result<()> {
+    async fn update(&self, entity: &T::UpdateEntity) -> anyhow::Result<()> {
         unimplemented!()
     }
 

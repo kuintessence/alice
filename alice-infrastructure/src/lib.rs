@@ -9,9 +9,9 @@ pub mod message_queue;
 pub use message_queue::{ConsumerFn, ConsumerReturn};
 #[cfg(feature = "error")]
 pub mod error;
+#[cfg(feature = "http-client")]
+pub mod http_client;
 #[cfg(any(feature = "actix-middleware", feature = "reqwest-middleware"))]
 pub mod middleware;
 #[cfg(feature = "telemetry")]
 pub mod telemetry;
-#[cfg(feature = "http-client")]
-pub mod http_client;
