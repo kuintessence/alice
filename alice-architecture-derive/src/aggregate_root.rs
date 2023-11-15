@@ -56,6 +56,7 @@ pub fn impl_arrgegate_root(ast: DeriveInput) -> TokenStream {
 
         impl alice_architecture::repository::DbEntity for #db_ident { }
 
+        #[derive(Default)]
         #db_struct
 
         impl From<#ident> for #db_ident {
