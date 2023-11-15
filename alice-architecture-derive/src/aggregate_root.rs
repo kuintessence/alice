@@ -1,6 +1,6 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
-use syn::{parse_quote, DeriveInput, ItemStruct};
+use syn::{DeriveInput, ItemStruct, parse_quote};
 
 pub fn impl_arrgegate_root(ast: DeriveInput) -> TokenStream {
     let ident = &ast.ident;
@@ -42,7 +42,7 @@ pub fn impl_arrgegate_root(ast: DeriveInput) -> TokenStream {
             .iter()
             .map(|f| {
                 let f_ident = &f.ident;
-                quote!(#f_ident: alice_architecture::repository::DbField::Set(value.#f_ident))
+                quote!(#f_ident: alice_architecture::repository::DbField::Set(value.#f_ident),)
             })
             .collect::<Vec<_>>()
     } else {
