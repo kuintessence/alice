@@ -57,7 +57,7 @@ where
 #[async_trait::async_trait]
 pub trait MutableRepository<T>: Send + Sync
 where
-    T: AggregateRoot,
+    T: AggregateRoot + Send + 'static,
 {
     async fn update(&self, entity: &T::UpdateEntity) -> anyhow::Result<()> {
         unimplemented!()
@@ -75,7 +75,7 @@ where
         unimplemented!()
     }
 
-    async fn insert_list(&self, entities: &[&T]) -> anyhow::Result<Vec<Uuid>> {
+    async fn insert_list(&self, entities: &[T]) -> anyhow::Result<Vec<Uuid>> {
         unimplemented!()
     }
 
@@ -87,13 +87,13 @@ where
 #[async_trait::async_trait]
 pub trait DBRepository<T>: ReadOnlyRepository<T> + MutableRepository<T>
 where
-    T: AggregateRoot,
+    T: AggregateRoot + Send + 'static,
 {
 }
 
 #[async_trait::async_trait]
 pub trait LeaseDBRepository<T>: DBRepository<T> + LeaseRepository<T>
 where
-    T: AggregateRoot,
+    T: AggregateRoot + Send + 'static,
 {
 }
