@@ -25,6 +25,16 @@ where
 }
 
 impl<T> DbField<T> {
+    pub fn map<U, F>(self, f: F) -> DbField<U>
+    where
+        F: FnOnce(T) -> U,
+    {
+        match self {
+            DbField::Set(v) => DbField::Set(f(v)),
+            DbField::NotSet => DbField::NotSet,
+        }
+    }
+
     pub fn value(&self) -> anyhow::Result<&T> {
         match self {
             DbField::Set(v) => Ok(v),
