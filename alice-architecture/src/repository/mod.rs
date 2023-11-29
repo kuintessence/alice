@@ -1,3 +1,4 @@
+use sea_orm::{ActiveValue, Value};
 use uuid::Uuid;
 
 use crate::model::AggregateRoot;
@@ -9,6 +10,18 @@ pub enum DbField<T = ()> {
     Set(T),
     #[default]
     NotSet,
+}
+
+impl<T> From<DbField<T>> for ActiveValue<T>
+where
+    T: Into<Value>,
+{
+    fn from(value: DbField<T>) -> Self {
+        match value {
+            DbField::Set(v) => Self::Set(v),
+            DbField::NotSet => Self::NotSet,
+        }
+    }
 }
 
 impl<T> DbField<T> {

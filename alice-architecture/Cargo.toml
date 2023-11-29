@@ -12,6 +12,7 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 uuid = { workspace = true, features = ["serde"] }
 chrono = { workspace = true }
+sea-orm = { workspace = true, default_features = false }
 
 [features]
 derive = ["alice-architecture-derive"]
