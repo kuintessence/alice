@@ -1,4 +1,6 @@
-use sea_orm::{ActiveValue, Value};
+use num_traits::ToPrimitive;
+use sea_orm::ActiveValue;
+use serde::Serialize;
 use uuid::Uuid;
 
 use crate::model::AggregateRoot;
@@ -12,33 +14,71 @@ pub enum DbField<T = ()> {
     NotSet,
 }
 
-impl<T> From<DbField<T>> for ActiveValue<T>
+impl<T> From<DbField<T>> for ActiveValue<i32>
 where
-    T: Into<Value>,
+    T: ToPrimitive,
 {
     fn from(value: DbField<T>) -> Self {
         match value {
-            DbField::Set(v) => Self::Set(v),
+            DbField::Set(v) => Self::Set(v.to_i32().unwrap()),
             DbField::NotSet => Self::NotSet,
         }
     }
 }
 
-impl<T> DbField<T> {
-    pub fn map<U, F>(self, f: F) -> DbField<U>
-    where
-        F: FnOnce(T) -> U,
-    {
-        match self {
-            DbField::Set(v) => DbField::Set(f(v)),
-            DbField::NotSet => DbField::NotSet,
+impl<T> From<DbField<Option<T>>> for ActiveValue<Option<i32>>
+where
+    T: ToPrimitive,
+{
+    fn from(value: DbField<Option<T>>) -> Self {
+        match value {
+            DbField::Set(o) => Self::Set(o.map(|v| v.to_i32().unwrap())),
+            DbField::NotSet => Self::NotSet,
         }
     }
+}
 
+impl<T> TryFrom<DbField<Option<T>>> for ActiveValue<Option<serde_json::Value>>
+where
+    T: Serialize,
+{
+    type Error = serde_json::Error;
+    fn try_from(value: DbField<Option<T>>) -> Result<Self, Self::Error> {
+        Ok(match value {
+            DbField::Set(o) => Self::Set(o.map(serde_json::to_value).transpose()?),
+            DbField::NotSet => Self::NotSet,
+        })
+    }
+}
+
+impl<T> TryFrom<DbField<T>> for ActiveValue<serde_json::Value>
+where
+    T: Serialize,
+{
+    type Error = serde_json::Error;
+    fn try_from(value: DbField<T>) -> Result<Self, Self::Error> {
+        Ok(match value {
+            DbField::Set(v) => Self::Set(serde_json::to_value(v)?),
+            DbField::NotSet => Self::NotSet,
+        })
+    }
+}
+
+impl<T> DbField<T> {
     pub fn value(&self) -> anyhow::Result<&T> {
         match self {
             DbField::Set(v) => Ok(v),
             DbField::NotSet => Err(anyhow::anyhow!("DbField No value!")),
+        }
+    }
+
+    pub fn into_active_value(self) -> ActiveValue<T>
+    where
+        T: Into<sea_orm::Value>,
+    {
+        match self {
+            DbField::Set(v) => ActiveValue::Set(v),
+            DbField::NotSet => ActiveValue::NotSet,
         }
     }
 }

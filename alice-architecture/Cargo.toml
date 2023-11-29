@@ -13,6 +13,7 @@ thiserror = { workspace = true }
 uuid = { workspace = true, features = ["serde"] }
 chrono = { workspace = true }
 sea-orm = { workspace = true, default_features = false }
+num-traits = { workspace = true }
 
 [features]
 derive = ["alice-architecture-derive"]
