@@ -83,7 +83,7 @@ impl<T> DbField<T> {
     }
 }
 
-pub trait DbEntity {}
+pub trait DbEntity: Send + Sync + 'static {}
 
 #[async_trait::async_trait]
 pub trait LeaseRepository<T>: Send + Sync
@@ -122,7 +122,7 @@ pub trait MutableRepository<T>: Send + Sync
 where
     T: AggregateRoot + Send + 'static,
 {
-    async fn update(&self, entity: &T::UpdateEntity) -> anyhow::Result<()> {
+    async fn update(&self, entity: T::UpdateEntity) -> anyhow::Result<()> {
         unimplemented!()
     }
 
