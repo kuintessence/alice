@@ -1,10 +1,9 @@
 use actix_http::body::{EitherBody, MessageBody};
-use sea_orm::EntityTrait;
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     Error, FromRequest, HttpMessage,
 };
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine};
 use futures_util::{future::LocalBoxFuture, Future, TryFutureExt};
@@ -14,6 +13,7 @@ use jsonwebtoken::{
     Algorithm, DecodingKey, TokenData, Validation,
 };
 use reqwest::Client as ReqwestClient;
+use sea_orm::EntityTrait;
 use serde::Deserialize;
 use serde_json::Value;
 use std::{
@@ -103,7 +103,7 @@ pub trait UserIdRepository: Send + Sync {
 }
 
 pub struct JwtValidationMiddleware {
-    key_storage: Arc<dyn KeyStorage >,
+    key_storage: Arc<dyn KeyStorage>,
     config: crate::config::JwtValidationConfig,
     all_controllers: bool,
     resources_config: ResourceControlConfig,
@@ -286,20 +286,21 @@ async fn get_user_id(
 ) -> anyhow::Result<Uuid> {
     let task_id = task_id.to_str()?.parse::<Uuid>()?;
     let con = database.get_connection();
-    let flow_instance_id = database_model::prelude::NodeInstance::find_by_id(task_id)
+    let node_id = database_model::prelude::Task::find_by_id(task_id)
         .one(con)
         .await?
-        .ok_or(anyhow!("No such node: {task_id} in jwt validation."))?
+        .with_context(|| format!("No such task: {task_id} in jwt validation.",))?
+        .node_instance_id;
+    let flow_id = database_model::prelude::NodeInstance::find_by_id(node_id)
+        .one(con)
+        .await?
+        .with_context(|| format!("No such node: {node_id} in jwt validation."))?
         .flow_instance_id;
-    Ok(
-        database_model::prelude::FlowInstance::find_by_id(flow_instance_id)
-            .one(con)
-            .await?
-            .ok_or(anyhow!(
-                "No such flow-instance: {flow_instance_id} in jwt validation"
-            ))?
-            .user_id,
-    )
+    Ok(database_model::prelude::FlowInstance::find_by_id(flow_id)
+        .one(con)
+        .await?
+        .with_context(|| format!("No such flow-instance: {flow_id} in jwt validation"))?
+        .user_id)
 }
 
 async fn parse_jwt_token_payload(
