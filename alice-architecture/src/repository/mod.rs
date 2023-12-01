@@ -12,6 +12,7 @@ pub enum DbField<T = ()> {
     Set(T),
     #[default]
     NotSet,
+    Unchanged(T),
 }
 
 impl<T> From<DbField<T>> for ActiveValue<i32>
@@ -22,6 +23,7 @@ where
         match value {
             DbField::Set(v) => Self::Set(v.to_i32().unwrap()),
             DbField::NotSet => Self::NotSet,
+            DbField::Unchanged(v) => Self::Unchanged(v.to_i32().unwrap()),
         }
     }
 }
@@ -34,6 +36,7 @@ where
         match value {
             DbField::Set(o) => Self::Set(o.map(|v| v.to_i32().unwrap())),
             DbField::NotSet => Self::NotSet,
+            DbField::Unchanged(o) => Self::Unchanged(o.map(|v| v.to_i32().unwrap())),
         }
     }
 }
@@ -47,6 +50,7 @@ where
         Ok(match value {
             DbField::Set(o) => Self::Set(o.map(serde_json::to_value).transpose()?),
             DbField::NotSet => Self::NotSet,
+            DbField::Unchanged(o) => Self::Unchanged(o.map(serde_json::to_value).transpose()?),
         })
     }
 }
@@ -60,6 +64,7 @@ where
         Ok(match value {
             DbField::Set(v) => Self::Set(serde_json::to_value(v)?),
             DbField::NotSet => Self::NotSet,
+            DbField::Unchanged(v) => Self::Unchanged(serde_json::to_value(v)?),
         })
     }
 }
@@ -69,6 +74,7 @@ impl<T> DbField<T> {
         match self {
             DbField::Set(v) => Ok(v),
             DbField::NotSet => Err(anyhow::anyhow!("DbField No value!")),
+            DbField::Unchanged(v) => Ok(v),
         }
     }
 
@@ -79,6 +85,7 @@ impl<T> DbField<T> {
         match self {
             DbField::Set(v) => ActiveValue::Set(v),
             DbField::NotSet => ActiveValue::NotSet,
+            DbField::Unchanged(v) => ActiveValue::Unchanged(v),
         }
     }
 }
