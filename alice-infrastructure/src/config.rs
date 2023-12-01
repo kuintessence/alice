@@ -109,7 +109,7 @@ impl ResourceControlConfig {
                     "hpc".to_string(),
                     [
                         "/agent".to_string(),
-                        "/workflow-engine/ReceiveNodeStatus".to_string(),
+                        "/workflow-engine/ReceiveTaskStatus".to_string(),
                         "/file-storage/PreparePartialUploadFromNodeInstance".to_string(),
                         "/file-storage/PreparePartialUploadFromSnapshot".to_string(),
                         "/file-storage/PartialUpload".to_string(),
