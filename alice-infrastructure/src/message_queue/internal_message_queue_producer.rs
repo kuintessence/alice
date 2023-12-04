@@ -91,8 +91,8 @@ where
         loop {
             match self.receiver.recv_async().await {
                 Ok(message) => {
-                    log::trace!("message received: {:#?}.", message);
-                    match self.fn_mapper.get(message.target.as_str()) {
+                    tracing::trace!("message received: {message:#?}");
+                    match self.fn_mapper.get(&message.target) {
                         Some(x) => {
                             let sp = self.service_provider.clone();
                             let x = *x;
@@ -100,17 +100,17 @@ where
                                 Handle::current().block_on(
                                     async move {
                                         if let Err(e) = x(message.body.as_str(), sp.clone()).await {
-                                            log::error!("{}", e)
+                                            tracing::error!("{e}")
                                         }
                                     }
                                     .instrument(tracing::trace_span!("internal_message_queue")),
                                 )
                             });
                         }
-                        None => log::warn!("No such service: {}.", message.target),
+                        None => tracing::warn!("No such service: {}", message.target),
                     }
                 }
-                Err(e) => log::error!("{}", e),
+                Err(e) => tracing::error!("{e}"),
             }
         }
     }

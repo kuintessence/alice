@@ -53,7 +53,7 @@ impl FromRequest for AliceScopedConfig {
         Box::pin(async move {
             let user_info = req.extensions().get::<UserInfo>().cloned();
             let device_info = req.extensions().get::<DeviceInfo>().cloned();
-            log::info!("user_info: {user_info:?}, device_info: {device_info:?}");
+            tracing::info!("user_info: {user_info:?}, device_info: {device_info:?}");
             Ok(AliceScopedConfig {
                 user_info,
                 device_info,
@@ -274,7 +274,7 @@ where
             } else {
                 req.extensions_mut().insert(UserInfo::from(payload));
             }
-            log::info!("Handling {req_path}.");
+            tracing::info!("Handling {req_path}.");
             service.call(req).map_ok(|res| res.map_into_left_body()).await
         })
     }
@@ -354,7 +354,7 @@ async fn parse_jwt_token_payload(
     let jwk_set = match key_storage.get(&payload.iss).await {
         Ok(x) => x,
         Err(e) => {
-            log::debug!("Get key first try failed: {e}, take second try.");
+            tracing::debug!("Get key first try failed: {e}, take second try.");
             key_storage.reload_keys(&payload.iss).await?
         }
     };

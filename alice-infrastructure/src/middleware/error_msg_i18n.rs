@@ -93,7 +93,7 @@ where
                     Some(e) => match e.0.localize(fluent_locale.as_ref()) {
                         Ok(r) => r,
                         Err(e) => {
-                            log::error!("{e}");
+                            tracing::error!("{e}");
                             fallback_response(&fluent_locale)
                         }
                     },
@@ -121,7 +121,7 @@ fn fallback_response(locale: &AliceFluentLocale) -> LocalizedMsg {
         message: match locale.text("internal-error") {
             Ok(s) => s,
             Err(e) => {
-                log::error!("No any internal-error locale - {e}");
+                tracing::error!("No any internal-error locale - {e}");
                 "Internal error".to_string()
             }
         },

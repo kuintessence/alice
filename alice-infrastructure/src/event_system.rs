@@ -53,7 +53,7 @@ impl EventRouter for AliceEventRouter {
         for url in event_handler_post_urls {
             let resp = self.http_client.post(url).json(&event.data).send().await?;
             if let Err(e) = resp.error_for_status() {
-                log::error!("Error when dispatch event: {}, time: {}", e, event.time);
+                tracing::error!("Error when dispatch event: {}, time: {}", e, event.time);
             }
         }
         Ok(())

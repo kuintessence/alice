@@ -96,17 +96,14 @@ where
             )
             .unwrap();
         let mut stream = stream_consumer.stream();
-        log::info!("Kafka starting");
+        tracing::info!("Kafka starting");
         loop {
             match stream.next().await {
                 Some(Ok(borrowed_message)) => {
                     let topic = borrowed_message.topic();
-                    let message = (match borrowed_message.payload_view::<str>() {
-                        Some(x) => x.unwrap_or("{}"),
-                        None => "{}",
-                    })
-                    .to_string();
-                    log::debug!("Message: {}", message);
+                    let message =
+                        borrowed_message.payload_view::<str>().and_then(Result::ok).unwrap_or("{}");
+                    tracing::debug!("Message: {message}");
                     match self.fn_mapper.get(topic) {
                         Some(x) => {
                             let sp = self.service_provider.clone();
@@ -115,8 +112,8 @@ where
                             tokio::task::block_in_place(move || {
                                 Handle::current().block_on(
                                     async move {
-                                        if let Err(e) = x(message.as_str(), sp.clone()).await {
-                                            log::error!("{}", e)
+                                        if let Err(e) = x(message, sp.clone()).await {
+                                            tracing::error!("{e}")
                                         }
                                     }
                                     .instrument(
@@ -125,14 +122,14 @@ where
                                 )
                             });
                         }
-                        None => log::warn!("No such service: {}.", topic),
+                        None => tracing::warn!("No such service: {topic}"),
                     }
                 }
                 Some(Err(kafka_error)) => match kafka_error {
                     rdkafka::error::KafkaError::PartitionEOF(partition) => {
-                        log::info!("at end of partition {:?}", partition);
+                        tracing::info!("at end of partition {partition:?}");
                     }
-                    _ => log::error!("errors from kafka, {}", kafka_error),
+                    _ => tracing::error!("errors from kafka, {kafka_error}"),
                 },
                 None => {}
             }
@@ -193,21 +190,18 @@ where
         loop {
             match stream.next().await {
                 Some(Ok(borrowed_message)) => {
-                    let message = (match borrowed_message.payload_view::<str>() {
-                        Some(x) => x.unwrap_or("{}"),
-                        None => "{}",
-                    })
-                    .to_string();
-                    log::debug!("Message: {}", message);
-                    for x in self.fn_mapper.iter() {
+                    let message =
+                        borrowed_message.payload_view::<str>().and_then(Result::ok).unwrap_or("{}");
+                    tracing::debug!("Message: {message}");
+                    for x in &self.fn_mapper {
                         let sp = self.service_provider.clone();
                         let x = *x;
-                        let message = message.clone();
+                        let message = message.to_owned();
                         tokio::task::block_in_place(move || {
                             Handle::current().block_on(
                                 async move {
-                                    if let Err(e) = x(message.as_str(), sp.clone()).await {
-                                        log::error!("{}", e)
+                                    if let Err(e) = x(&message, sp.clone()).await {
+                                        tracing::error!("{e}")
                                     }
                                 }
                                 .instrument(tracing::trace_span!(
@@ -219,9 +213,9 @@ where
                 }
                 Some(Err(kafka_error)) => match kafka_error {
                     rdkafka::error::KafkaError::PartitionEOF(partition) => {
-                        log::info!("at end of partition {:?}", partition);
+                        tracing::info!("at end of partition {partition:?}");
                     }
-                    _ => log::error!("errors from kafka, {}", kafka_error),
+                    _ => tracing::error!("errors from kafka, {kafka_error}"),
                 },
                 None => {}
             }
