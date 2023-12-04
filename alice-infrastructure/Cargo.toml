@@ -4,17 +4,17 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-actix-i18n = { workspace = true }
 alice-architecture = { workspace = true }
+actix-i18n = { workspace = true, optional = true }
 # error
 anyhow = { workspace = true }
 # async
-tokio = { workspace = true, optional = true, features = ["rt-multi-thread"] }
+tokio = { workspace = true, features = ["rt-multi-thread"], optional = true }
 flume = { workspace = true, optional = true }
 async-trait = { workspace = true, optional = true }
 futures-util = { workspace = true, optional = true }
 # web
-actix-http = { workspace = true }
+actix-http = { workspace = true, optional = true }
 actix-web = { workspace = true, optional = true }
 url = { workspace = true, optional = true }
 reqwest = { workspace = true, default-features = false, features = [
@@ -34,17 +34,17 @@ opentelemetry = { workspace = true, features = ["rt-tokio"], optional = true }
 opentelemetry-otlp = { workspace = true, optional = true }
 log = { workspace = true }
 # data
-base64 = { workspace = true }
 config = { workspace = true, features = ["yaml"] }
+base64 = { workspace = true, optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-uuid = { workspace = true, optional = true, features = ["serde"] }
+uuid = { workspace = true, features = ["serde"], optional = true }
 # middlewares
 rdkafka = { workspace = true, optional = true }
-sea-orm = { workspace = true, optional = true, features = [
+sea-orm = { workspace = true, features = [
   "runtime-actix-rustls",
   "sqlx-postgres",
-] }
+], optional = true }
 jsonwebtoken = { workspace = true, optional = true }
 # code
 task-local-extensions = { workspace = true, optional = true }
@@ -62,12 +62,15 @@ actix-middleware = [
   "dep:jsonwebtoken",
   "dep:url",
   "dep:reqwest",
-  "error",
-  "sea-orm-db",
   "dep:database-model",
   "dep:async-trait",
   "dep:uuid",
+  "dep:actix-http",
+  "dep:actix-i18n",
+  "dep:base64",
   "alice-architecture/web",
+  "error",
+  "sea-orm-db",
 ]
 kafka-mq = [
   "rdkafka/cmake-build",
@@ -93,7 +96,12 @@ telemetry = [
   "dep:tracing-appender",
 ]
 event-system = ["dep:uuid", "alice-architecture/event"]
-error = ["dep:actix-web", "alice-architecture/derive"]
+error = [
+  "dep:actix-http",
+  "dep:actix-web",
+  "dep:base64",
+  "alice-architecture/derive",
+]
 full = [
   "http-client",
   "sea-orm-db",
