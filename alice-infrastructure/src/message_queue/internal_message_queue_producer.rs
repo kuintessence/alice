@@ -1,11 +1,14 @@
-use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
-use tokio::runtime::Handle;
-use tracing::Instrument;
+use std::collections::HashMap;
+use std::future::Future;
+use std::pin::Pin;
+use std::sync::Arc;
 
 use alice_architecture::background_service::BackgroundService;
 use alice_architecture::message_queue::producer::{
     MessageQueueProducer, MessageQueueProducerTemplate,
 };
+use tokio::runtime::Handle;
+use tracing::Instrument;
 
 pub type ConsumerReturn<'async_fn> = Pin<Box<dyn Future<Output = anyhow::Result<()>> + 'async_fn>>;
 pub type ConsumerFn<SP> = for<'async_fn> fn(content: &'async_fn str, sp: Arc<SP>) -> ConsumerReturn;

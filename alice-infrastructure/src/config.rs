@@ -1,9 +1,9 @@
-use serde::*;
-use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 
-#[derive(Default, Deserialize, Clone, Debug)]
+use serde::Deserialize;
+use serde_json::Value;
 
+#[derive(Debug, Default, Deserialize, Clone)]
 pub struct CommonConfig {
     #[cfg(feature = "telemetry")]
     #[serde(default)]
@@ -23,7 +23,6 @@ pub struct CommonConfig {
 }
 
 #[derive(Deserialize, Clone, Debug)]
-
 pub struct JwtValidationConfig {
     #[serde(default = "JwtValidationConfig::default_required_spec_claims")]
     pub required_spec_claims: HashSet<String>,
@@ -75,10 +74,13 @@ impl Default for JwtValidationConfig {
 
 /// Client id
 type ClientId = String;
+
 /// Role name
 type Role = String;
+
 /// Controller path name
 type ControllerPathPrefix = String;
+
 /// Allowed client and resource config
 #[derive(Deserialize, Clone, Debug)]
 pub struct ResourceControlConfig(
@@ -209,7 +211,6 @@ impl HostConfig {
 }
 
 #[derive(Default, Deserialize, Clone, Debug)]
-
 pub struct MessageQueueConfig {
     #[serde(default)]
     pub topics: Vec<String>,
@@ -220,7 +221,6 @@ pub struct MessageQueueConfig {
 }
 
 #[derive(Deserialize, Clone, Debug)]
-
 pub struct RedisConfig {
     #[serde(default = "RedisConfig::default_urls")]
     pub urls: Vec<String>,
@@ -246,7 +246,6 @@ impl RedisConfig {
 }
 
 #[derive(Deserialize, Clone, Debug)]
-
 pub struct DatabaseConfig {
     #[serde(default = "DatabaseConfig::default_url")]
     pub url: String,
@@ -265,11 +264,11 @@ impl Default for DatabaseConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-
+#[derive(Debug, Deserialize, Clone)]
 pub struct HttpClientConfig {
     #[serde(default = "Default::default")]
     pub http_header: HashMap<String, String>,
+
     #[serde(default = "HttpClientConfig::default_user_agent")]
     pub user_agent: String,
 }

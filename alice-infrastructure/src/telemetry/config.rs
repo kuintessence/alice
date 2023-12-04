@@ -1,10 +1,10 @@
-use serde::*;
+use serde::Deserialize;
 use tracing::metadata::LevelFilter;
 use tracing_appender::rolling::Rotation;
 use tracing_subscriber::filter::Directive;
 
 /// 遥测系统配置
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct TelemetryConfig {
     /// 启用遥测系统
     #[serde(default = "default_enabled")]
@@ -44,7 +44,7 @@ impl Default for TelemetryConfig {
 }
 
 /// 日志级别
-#[derive(Default, Deserialize, Serialize, Clone, Debug)]
+#[derive(Debug, Default, Clone, Deserialize)]
 pub enum LoggingLevel {
     Error,
     Warn,
@@ -76,7 +76,7 @@ impl From<LoggingLevel> for Directive {
 }
 
 /// 调用追踪配置
-#[derive(Default, Deserialize, Serialize, Clone, Debug)]
+#[derive(Debug, Default, Clone, Deserialize)]
 pub struct RemoteConfig {
     /// 启用调用追踪
     #[serde(default = "Default::default")]
@@ -87,7 +87,7 @@ pub struct RemoteConfig {
 }
 
 /// 控制台输出配置
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct ConsoleConfig {
     /// 启用控制台输出
     #[serde(default = "default_enabled")]
@@ -119,7 +119,7 @@ impl Default for ConsoleConfig {
 }
 
 /// 文件输出配置
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct FileConfig {
     /// 启用文件输出
     #[serde(default = "Default::default")]
@@ -163,7 +163,7 @@ impl Default for FileConfig {
 }
 
 /// 文件生成周期
-#[derive(Default, Deserialize, Serialize, Clone, Debug)]
+#[derive(Debug, Clone, Default, Deserialize)]
 pub enum RotationLevel {
     Daily,
     Hourly,
@@ -171,6 +171,7 @@ pub enum RotationLevel {
     #[default]
     Never,
 }
+
 impl From<RotationLevel> for Rotation {
     fn from(val: RotationLevel) -> Self {
         match val {
@@ -181,12 +182,15 @@ impl From<RotationLevel> for Rotation {
         }
     }
 }
+
 fn default_enabled() -> bool {
     true
 }
+
 fn default_path() -> String {
     "./logs".to_string()
 }
+
 fn default_filename() -> String {
     "prefix.log".to_string()
 }

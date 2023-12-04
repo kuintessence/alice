@@ -9,6 +9,9 @@ members = [
   "alice-web",
 ]
 
+[workspace.dependencies.database-model]
+git = "https://github.com/kuintessence/database"
+
 [workspace.dependencies]
 alice-architecture = { path = "alice-architecture" }
 
@@ -59,6 +62,3 @@ task-local-extensions = "0"
 jsonwebtoken = "9.1"
 cmake = "0.1"
 num-traits = "0.2"
-
-[workspace.dependencies.database-model]
-git = "https://github.com/kuintessence/database"

@@ -1,8 +1,18 @@
+use std::{
+    collections::HashMap,
+    future::{ready, Ready},
+    pin::Pin,
+    rc::Rc,
+    str::FromStr,
+    sync::{Arc, Mutex},
+};
+
 use actix_http::body::{EitherBody, MessageBody};
 use actix_web::{
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     Error, FromRequest, HttpMessage,
 };
+use alice_architecture::jwt_payload::Payload;
 use anyhow::{anyhow, Context};
 use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine};
@@ -16,17 +26,7 @@ use reqwest::Client as ReqwestClient;
 use sea_orm::EntityTrait;
 use serde::Deserialize;
 use serde_json::Value;
-use std::{
-    collections::HashMap,
-    future::{ready, Ready},
-    pin::Pin,
-    rc::Rc,
-    str::FromStr,
-    sync::{Arc, Mutex},
-};
 use uuid::Uuid;
-
-use alice_architecture::jwt_payload::Payload;
 
 use crate::{
     config::ResourceControlConfig,

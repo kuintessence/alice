@@ -1,6 +1,10 @@
+use std::convert::TryFrom;
+use std::sync::Arc;
+
+use reqwest::header::HeaderMap;
+use reqwest::Client;
+
 use crate::config::HttpClientConfig;
-use reqwest::{header::HeaderMap, Client};
-use std::{convert::TryFrom, sync::Arc};
 
 pub fn build_http_client(config: &HttpClientConfig) -> anyhow::Result<Arc<Client>> {
     Ok(Arc::new(

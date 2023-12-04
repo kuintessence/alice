@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 actix-i18n = { workspace = true }
-alice-architecture = { workspace = true, features = ["derive"] }
+alice-architecture = { workspace = true }
 # error
 anyhow = { workspace = true }
 # async
@@ -21,7 +21,6 @@ reqwest = { workspace = true, default-features = false, features = [
   "json",
   "rustls-tls",
 ], optional = true }
-reqwest-middleware = { workspace = true, optional = true }
 # log
 tracing = { workspace = true, optional = true }
 tracing-appender = { workspace = true, optional = true }
@@ -51,45 +50,50 @@ jsonwebtoken = { workspace = true, optional = true }
 task-local-extensions = { workspace = true, optional = true }
 thiserror = { workspace = true }
 database-model = { workspace = true, optional = true }
+
 [build-dependencies]
 cmake = { workspace = true, optional = true }
 
 [features]
-http-client = ["reqwest"]
+http-client = ["dep:reqwest"]
 actix-middleware = [
-  "futures-util",
-  "actix-web",
-  "jsonwebtoken",
-  "url",
-  "reqwest",
+  "dep:futures-util",
+  "dep:actix-web",
+  "dep:jsonwebtoken",
+  "dep:url",
+  "dep:reqwest",
   "error",
   "sea-orm-db",
-  "database-model",
-  "async-trait",
-  "uuid",
+  "dep:database-model",
+  "dep:async-trait",
+  "dep:uuid",
+  "alice-architecture/web",
 ]
-reqwest-middleware = [
-  "dep:reqwest-middleware",
-  "reqwest",
-  "task-local-extensions",
-  "tokio/time",
-  "tokio/macros",
-  "async-trait",
+kafka-mq = [
+  "rdkafka/cmake-build",
+  "dep:cmake",
+  "dep:async-trait",
+  "alice-architecture/mq",
 ]
-kafka-mq = ["rdkafka/cmake-build", "cmake", "async-trait"]
-flume-mq = ["flume", "async-trait", "tokio/rt"]
+flume-mq = [
+  "dep:flume",
+  "dep:async-trait",
+  "tokio/rt",
+  "alice-architecture/background-service",
+  "alice-architecture/mq",
+]
 sea-orm-db = ["sea-orm"]
 telemetry = [
-  "tracing",
-  "tracing-opentelemetry",
-  "tracing-log",
-  "tracing-subscriber",
-  "opentelemetry",
-  "opentelemetry-otlp",
-  "tracing-appender",
+  "dep:tracing",
+  "dep:tracing-opentelemetry",
+  "dep:tracing-log",
+  "dep:tracing-subscriber",
+  "dep:opentelemetry",
+  "dep:opentelemetry-otlp",
+  "dep:tracing-appender",
 ]
-event-system = ["uuid"]
-error = ["actix-web"]
+event-system = ["dep:uuid", "alice-architecture/event"]
+error = ["dep:actix-web", "alice-architecture/derive"]
 full = [
   "http-client",
   "sea-orm-db",
@@ -97,7 +101,6 @@ full = [
   "actix-middleware",
   "telemetry",
   "flume-mq",
-  "reqwest-middleware",
   "event-system",
   "error",
 ]

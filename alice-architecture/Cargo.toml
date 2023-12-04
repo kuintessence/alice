@@ -5,15 +5,20 @@ edition = "2021"
 
 [dependencies]
 alice-architecture-derive = { path = "../alice-architecture-derive", optional = true }
+uuid = { workspace = true, features = ["serde"] }
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
-thiserror = { workspace = true }
-uuid = { workspace = true, features = ["serde"] }
-chrono = { workspace = true }
-sea-orm = { workspace = true, default_features = false }
-num-traits = { workspace = true }
+serde_json = { workspace = true, optional = true }
+chrono = { workspace = true, optional = true }
+sea-orm = { workspace = true, default_features = false, optional = true }
+num-traits = { workspace = true, optional = true }
 
 [features]
-derive = ["alice-architecture-derive"]
+derive = ["dep:alice-architecture-derive"]
+event = ["repository", "model", "dep:chrono"]
+model = ["repository"]
+repository = ["dep:sea-orm", "dep:num-traits", "dep:serde_json"]
+web = ["dep:serde_json"]
+background-service = []
+mq = []

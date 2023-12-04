@@ -1,4 +1,4 @@
-use serde::*;
+use serde::Serialize;
 
 #[async_trait::async_trait]
 pub trait MessageQueueProducer: Send + Sync {
