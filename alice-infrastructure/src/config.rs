@@ -3,21 +3,53 @@ use std::collections::{HashMap, HashSet};
 use serde::Deserialize;
 use serde_json::Value;
 
+pub fn build_config() -> anyhow::Result<config::Config> {
+    let args: Vec<String> = std::env::args().collect();
+    let mut config = config::Config::builder().add_source(
+        config::File::with_name("config")
+            .required(false)
+            .format(config::FileFormat::Yaml),
+    );
+    for arg in args {
+        if arg.ends_with("yaml") || arg.ends_with("yml") {
+            config = config.add_source(
+                config::File::from(std::path::Path::new(arg.as_str()))
+                    .format(config::FileFormat::Yaml)
+                    .required(false),
+            );
+        }
+    }
+    config = config.add_source(
+        config::Environment::with_prefix("ALICE")
+            .separator("__")
+            .try_parsing(true)
+            .list_separator(";")
+            .with_list_parse_key("common.redis.urls"),
+    );
+    Ok(config.build()?)
+}
+
 #[derive(Debug, Default, Deserialize, Clone)]
 pub struct CommonConfig {
     #[cfg(feature = "telemetry")]
     #[serde(default)]
     pub telemetry: crate::telemetry::TelemetryConfig,
+
     #[serde(default)]
     pub db: DatabaseConfig,
+
     #[serde(default)]
     pub host: HostConfig,
+
     #[serde(default)]
     pub mq: MessageQueueConfig,
+
     #[serde(default)]
     pub redis: RedisConfig,
+
     #[serde(default)]
     pub jwt: JwtValidationConfig,
+
     #[serde(default)]
     pub http_client: HttpClientConfig,
 }
@@ -26,34 +58,44 @@ pub struct CommonConfig {
 pub struct JwtValidationConfig {
     #[serde(default = "JwtValidationConfig::default_required_spec_claims")]
     pub required_spec_claims: HashSet<String>,
+
     #[serde(default = "JwtValidationConfig::default_leeway")]
     pub leeway: u64,
+
     #[serde(default = "JwtValidationConfig::default_validate_exp")]
     pub validate_exp: bool,
+
     #[serde(default = "JwtValidationConfig::default_validate_nbf")]
     pub validate_nbf: bool,
+
     #[serde(default = "JwtValidationConfig::default_aud")]
     pub aud: Option<HashSet<String>>,
+
     #[serde(default = "JwtValidationConfig::default_iss")]
     pub iss: Option<HashSet<String>>,
 }
 
 impl JwtValidationConfig {
     fn default_required_spec_claims() -> HashSet<String> {
-        HashSet::from_iter(vec!["exp".to_string()])
+        HashSet::from_iter(vec![String::from("exp")])
     }
+
     fn default_leeway() -> u64 {
         60
     }
+
     fn default_validate_exp() -> bool {
         true
     }
+
     fn default_validate_nbf() -> bool {
         false
     }
+
     fn default_aud() -> Option<HashSet<String>> {
         None
     }
+
     fn default_iss() -> Option<HashSet<String>> {
         None
     }
@@ -62,12 +104,12 @@ impl JwtValidationConfig {
 impl Default for JwtValidationConfig {
     fn default() -> Self {
         Self {
-            required_spec_claims: HashSet::from_iter(vec!["exp".to_string()]),
-            leeway: 60,
-            validate_exp: true,
-            validate_nbf: false,
-            aud: None,
-            iss: None,
+            required_spec_claims: Self::default_required_spec_claims(),
+            leeway: Self::default_leeway(),
+            validate_exp: Self::default_validate_exp(),
+            validate_nbf: Self::default_validate_nbf(),
+            aud: Self::default_aud(),
+            iss: Self::default_iss(),
         }
     }
 }
@@ -177,10 +219,13 @@ impl Default for ResourceControlConfig {
 pub struct HostConfig {
     #[serde(default = "HostConfig::default_address")]
     pub bind_address: String,
+
     #[serde(default = "HostConfig::default_port")]
     pub bind_port: u16,
+
     #[serde(default = "HostConfig::default_upload_path")]
     pub upload_file_path: String,
+
     /// Config which controller path the client is able to access and what roles of this client can access.
     #[serde(default)]
     pub resources_config: ResourceControlConfig,
@@ -196,6 +241,7 @@ impl Default for HostConfig {
         }
     }
 }
+
 impl HostConfig {
     fn default_address() -> String {
         "0.0.0.0".to_string()
@@ -214,8 +260,10 @@ impl HostConfig {
 pub struct MessageQueueConfig {
     #[serde(default)]
     pub topics: Vec<String>,
+
     #[serde(default)]
     pub producer: HashMap<String, String>,
+
     #[serde(default)]
     pub consumer: HashMap<String, String>,
 }
@@ -224,6 +272,7 @@ pub struct MessageQueueConfig {
 pub struct RedisConfig {
     #[serde(default = "RedisConfig::default_urls")]
     pub urls: Vec<String>,
+
     #[serde(default = "RedisConfig::default_exp_msecs")]
     pub exp_msecs: i64,
 }
@@ -236,10 +285,12 @@ impl Default for RedisConfig {
         }
     }
 }
+
 impl RedisConfig {
     fn default_urls() -> Vec<String> {
-        vec!["localhost:6379".to_string()]
+        vec![String::from("localhost:6379")]
     }
+
     fn default_exp_msecs() -> i64 {
         24 * 60 * 60 * 1000
     }
@@ -253,9 +304,10 @@ pub struct DatabaseConfig {
 
 impl DatabaseConfig {
     fn default_url() -> String {
-        "postgres://postgres:postgrespassword@localhost:5432/system".to_string()
+        String::from("postgres://postgres:postgrespassword@localhost:5432/system")
     }
 }
+
 impl Default for DatabaseConfig {
     fn default() -> Self {
         Self {
@@ -266,7 +318,7 @@ impl Default for DatabaseConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct HttpClientConfig {
-    #[serde(default = "Default::default")]
+    #[serde(default)]
     pub http_header: HashMap<String, String>,
 
     #[serde(default = "HttpClientConfig::default_user_agent")]
@@ -284,32 +336,6 @@ impl Default for HttpClientConfig {
 
 impl HttpClientConfig {
     pub fn default_user_agent() -> String {
-        "COS/1.0".to_string()
+        String::from("COS/1.0")
     }
-}
-
-pub fn build_config() -> anyhow::Result<config::Config> {
-    let args: Vec<String> = std::env::args().collect();
-    let mut config = config::Config::builder().add_source(
-        config::File::with_name("config")
-            .required(false)
-            .format(config::FileFormat::Yaml),
-    );
-    for arg in args {
-        if arg.ends_with("yaml") || arg.ends_with("yml") {
-            config = config.add_source(
-                config::File::from(std::path::Path::new(arg.as_str()))
-                    .format(config::FileFormat::Yaml)
-                    .required(false),
-            );
-        }
-    }
-    config = config.add_source(
-        config::Environment::with_prefix("ALICE")
-            .separator("__")
-            .try_parsing(true)
-            .list_separator(";")
-            .with_list_parse_key("common.redis.urls"),
-    );
-    Ok(config.build()?)
 }

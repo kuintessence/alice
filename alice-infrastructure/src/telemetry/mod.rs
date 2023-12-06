@@ -1,98 +1,81 @@
 pub mod config;
-pub use self::config::*;
+
+use opentelemetry::trace::TraceResult;
 use opentelemetry_otlp::WithExportConfig;
 use tracing_appender::rolling::RollingFileAppender;
+use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{Layer, Registry};
 
+pub use self::config::*;
+
+const DEFAULT_LEVEL: LevelFilter = LevelFilter::INFO;
+
 /// 配置日志
-pub fn initialize_telemetry(config: &TelemetryConfig) -> anyhow::Result<()> {
+pub fn init_telemetry(config: &TelemetryConfig) -> anyhow::Result<()> {
     if !config.enable {
         return Ok(());
     }
-    let mut filter_builder = EnvFilter::builder();
-    if config.level_fliter_env.ne(&String::default()) {
-        filter_builder = filter_builder.with_env_var(config.level_fliter_env.as_str());
-    }
-    let filter = filter_builder
-        .with_default_directive(config.max_level.clone().into())
-        .parse_lossy(config.level_fliter.as_str());
-    let console = {
-        let config = &config.console;
-        if config.enable {
-            let enable_debug_logging = config.enable_debug_logging;
-            let mut filter_builder = EnvFilter::builder();
-            if config.level_fliter_env.ne(&String::default()) {
-                filter_builder = filter_builder.with_env_var(config.level_fliter_env.as_str());
-            }
-            let filter = filter_builder
-                .with_default_directive(config.max_level.clone().into())
-                .parse_lossy(config.level_fliter.as_str());
-            Some(
-                tracing_subscriber::fmt::layer()
-                    .with_file(enable_debug_logging)
-                    .with_line_number(enable_debug_logging)
-                    .with_thread_ids(enable_debug_logging)
-                    .with_target(enable_debug_logging)
-                    .with_filter(filter),
-            )
+
+    let console = &config.console.0;
+    let console = console.enable.then(|| {
+        let filter = EnvFilter::builder().with_default_directive(DEFAULT_LEVEL.into());
+        let filter = if !console.filter_env.is_empty() {
+            filter.with_env_var(&console.filter_env).from_env_lossy()
         } else {
-            None
-        }
-    };
-    let file = {
-        let config = &config.file;
-        if config.enable {
-            let enable_debug_logging = config.enable_debug_logging;
-            let mut filter_builder = EnvFilter::builder();
-            let file_appender = RollingFileAppender::new(
-                config.rolling_time.clone().into(),
-                &config.path,
-                &config.prefix,
-            );
-            if config.level_fliter_env.ne(&String::default()) {
-                filter_builder = filter_builder.with_env_var(config.level_fliter_env.as_str());
-            }
-            let filter = filter_builder
-                .with_default_directive(config.max_level.clone().into())
-                .parse_lossy(config.level_fliter.as_str());
-            Some(
-                tracing_subscriber::fmt::layer()
-                    .with_ansi(false)
-                    .with_writer(file_appender)
-                    .with_file(enable_debug_logging)
-                    .with_line_number(enable_debug_logging)
-                    .with_thread_ids(enable_debug_logging)
-                    .with_target(enable_debug_logging)
-                    .with_filter(filter),
-            )
+            filter.with_default_directive(DEFAULT_LEVEL.into()).parse_lossy(&console.filter)
+        };
+
+        tracing_subscriber::fmt::layer()
+            .with_file(console.verbose)
+            .with_line_number(console.verbose)
+            .with_thread_ids(console.verbose)
+            .with_target(true)
+            .with_filter(filter)
+    });
+
+    let file = &config.file;
+    let file = file.common.enable.then(|| {
+        let file_appender =
+            RollingFileAppender::new(file.rolling_time.into(), &file.path, &file.prefix);
+
+        let filter = EnvFilter::builder().with_default_directive(DEFAULT_LEVEL.into());
+        let filter = if !file.common.filter_env.is_empty() {
+            filter.with_env_var(&file.common.filter_env).from_env_lossy()
         } else {
-            None
-        }
-    };
-    let remote = {
-        let config = config.remote.clone();
-        if config.enable_trace {
+            filter.parse_lossy(&file.common.filter)
+        };
+
+        tracing_subscriber::fmt::layer()
+            .with_ansi(false)
+            .with_writer(file_appender)
+            .with_file(true)
+            .with_line_number(true)
+            .with_thread_ids(file.common.verbose)
+            .with_target(true)
+            .with_filter(filter)
+    });
+
+    let remote = &config.remote;
+    let remote = remote
+        .enable
+        .then(|| {
             let mut exporter = opentelemetry_otlp::new_exporter().tonic();
-            if config.collector_endpoint.ne(&String::default()) {
-                exporter = exporter.with_endpoint(config.collector_endpoint);
+            if !remote.collector_endpoint.is_empty() {
+                exporter = exporter.with_endpoint(&remote.collector_endpoint);
             }
+
             let tracer = opentelemetry_otlp::new_pipeline()
                 .tracing()
                 .with_exporter(exporter)
                 .install_batch(opentelemetry::runtime::Tokio)?;
-            Some(tracing_opentelemetry::layer().with_tracer(tracer))
-        } else {
-            None
-        }
-    };
-    Registry::default()
-        .with(filter)
-        .with(console)
-        .with(file)
-        .with(remote)
-        .try_init()?;
+
+            TraceResult::Ok(tracing_opentelemetry::layer().with_tracer(tracer))
+        })
+        .transpose()?;
+
+    Registry::default().with(console).with(file).with(remote).try_init()?;
     Ok(())
 }
