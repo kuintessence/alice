@@ -1,3 +1,4 @@
+use anyhow::bail;
 use num_traits::ToPrimitive;
 use sea_orm::ActiveValue;
 use serde::Serialize;
@@ -98,15 +99,15 @@ where
     T: AggregateRoot,
 {
     async fn update_with_lease(&self, key: &str, entity: &T, ttl: i64) -> anyhow::Result<()> {
-        unimplemented!()
+        bail!("unimplemented!")
     }
 
     async fn insert_with_lease(&self, key: &str, entity: &T, ttl: i64) -> anyhow::Result<Uuid> {
-        unimplemented!()
+        bail!("unimplemented!")
     }
 
     async fn keep_alive(&self, key: &str) -> anyhow::Result<()> {
-        unimplemented!()
+        bail!("unimplemented!")
     }
 }
 
@@ -116,11 +117,11 @@ where
     T: AggregateRoot,
 {
     async fn get_by_id(&self, uuid: Uuid) -> anyhow::Result<T> {
-        unimplemented!()
+        bail!("unimplemented!")
     }
 
     async fn get_all(&self) -> anyhow::Result<Vec<T>> {
-        unimplemented!()
+        bail!("unimplemented!")
     }
 }
 
@@ -130,27 +131,27 @@ where
     T: AggregateRoot + Send + 'static,
 {
     async fn update(&self, entity: T::UpdateEntity) -> anyhow::Result<()> {
-        unimplemented!()
+        bail!("unimplemented!")
     }
 
     async fn insert(&self, entity: &T) -> anyhow::Result<Uuid> {
-        unimplemented!()
+        bail!("unimplemented!")
     }
 
     async fn delete(&self, entity: &T) -> anyhow::Result<()> {
-        unimplemented!()
+        bail!("unimplemented!")
     }
 
     async fn delete_by_id(&self, uuid: Uuid) -> anyhow::Result<()> {
-        unimplemented!()
+        bail!("unimplemented!")
     }
 
     async fn insert_list(&self, entities: &[T]) -> anyhow::Result<Vec<Uuid>> {
-        unimplemented!()
+        bail!("unimplemented!")
     }
 
     async fn save_changed(&self) -> anyhow::Result<bool> {
-        unimplemented!()
+        bail!("unimplemented!")
     }
 }
 
