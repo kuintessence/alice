@@ -38,6 +38,7 @@ use crate::{
 pub struct AliceScopedConfig {
     pub user_info: Option<UserInfo>,
     pub device_info: Option<DeviceInfo>,
+    pub task_id: Option<TaskInfo>,
 }
 
 impl FromRequest for AliceScopedConfig {
@@ -53,10 +54,13 @@ impl FromRequest for AliceScopedConfig {
         Box::pin(async move {
             let user_info = req.extensions().get::<UserInfo>().cloned();
             let device_info = req.extensions().get::<DeviceInfo>().cloned();
+            let task_id = req.extensions().get::<TaskInfo>().cloned();
+
             // tracing::info!("user_info: {user_info:?}, device_info: {device_info:?}");
             Ok(AliceScopedConfig {
                 user_info,
                 device_info,
+                task_id,
             })
         })
     }
@@ -68,6 +72,17 @@ impl FromRequest for AliceScopedConfig {
 #[derive(Deserialize, Debug, Clone)]
 pub struct UserInfo {
     pub id: Uuid,
+}
+
+#[derive(Debug, Clone)]
+pub struct TaskInfo {
+    pub id: Uuid,
+}
+
+impl TaskInfo {
+    pub fn new(id: Uuid) -> Self {
+        Self { id }
+    }
 }
 
 impl UserInfo {
@@ -256,11 +271,14 @@ where
                 return Ok(ServiceResponse::from_err(e_403, req.request().to_owned())
                     .map_into_right_body());
             }
+
             let mut info_user_id = None;
             let mut info_device_name = None;
+            let mut info_task_id=None;
+
             if is_hpc {
                 if let Some(task_id) = req.headers().get("TaskId") {
-                    let user_id = match get_user_id(database, task_id)
+                    let (user_id, task_id) = match get_user_and_task_id(database, task_id)
                         .await
                         .map_err(|e| AliceError::new(AliceCommonError::InternalError { source: e }))
                     {
@@ -271,7 +289,9 @@ where
                         }
                     };
                     req.extensions_mut().insert(UserInfo::new(user_id));
+                    req.extensions_mut().insert(TaskInfo::new(task_id));
                     info_user_id = Some(user_id);
+                    info_task_id = Some(task_id);
                 }
                 info_device_name = Some(payload.preferred_username.to_owned());
                 req.extensions_mut().insert(DeviceInfo::from(payload));
@@ -287,6 +307,9 @@ where
             if let Some(device_name) = info_device_name {
                 info_msg.push_str(&format!(", device_name: {device_name}"));
             }
+            if let Some(task_id)=info_task_id{
+                info_msg.push_str(&format!(", task_id: {task_id}"));
+            }
 
             tracing::info!("{info_msg}");
             service.call(req).map_ok(|res| res.map_into_left_body()).await
@@ -294,10 +317,10 @@ where
     }
 }
 
-async fn get_user_id(
+async fn get_user_and_task_id(
     database: Arc<Database>,
     task_id: &actix_http::header::HeaderValue,
-) -> anyhow::Result<Uuid> {
+) -> anyhow::Result<(Uuid, Uuid)> {
     let task_id = task_id.to_str()?.parse::<Uuid>()?;
     let con = database.get_connection();
     let node_id = database_model::prelude::Task::find_by_id(task_id)
@@ -310,11 +333,14 @@ async fn get_user_id(
         .await?
         .with_context(|| format!("No such node: {node_id} in jwt validation."))?
         .flow_instance_id;
-    Ok(database_model::prelude::FlowInstance::find_by_id(flow_id)
-        .one(con)
-        .await?
-        .with_context(|| format!("No such flow-instance: {flow_id} in jwt validation"))?
-        .user_id)
+    Ok((
+        database_model::prelude::FlowInstance::find_by_id(flow_id)
+            .one(con)
+            .await?
+            .with_context(|| format!("No such flow-instance: {flow_id} in jwt validation"))?
+            .user_id,
+        task_id,
+    ))
 }
 
 async fn parse_jwt_token_payload(
