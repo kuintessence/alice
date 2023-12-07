@@ -26,11 +26,11 @@ pub struct KafkaMessageQueueProducer {
 
 #[async_trait::async_trait]
 impl MessageQueueProducer for KafkaMessageQueueProducer {
-    async fn send(&self, content: &str, topic: Option<&str>) -> anyhow::Result<()> {
+    async fn send(&self, content: &str, topic: &str) -> anyhow::Result<()> {
         match self
             .producer
             .send(
-                FutureRecord::to(topic.ok_or(anyhow::anyhow!("no topic"))?)
+                FutureRecord::to(topic)
                     .payload(content)
                     .key("")
                     .headers(OwnedHeaders::new()),
@@ -50,7 +50,7 @@ impl<T> MessageQueueProducerTemplate<T> for KafkaMessageQueueProducer
 where
     T: serde::Serialize + Send + Sync,
 {
-    async fn send_object(&self, content: &T, topic: Option<&str>) -> anyhow::Result<()> {
+    async fn send_object(&self, content: &T, topic: &str) -> anyhow::Result<()> {
         self.send(serde_json::to_string(content)?.as_str(), topic).await
     }
 }

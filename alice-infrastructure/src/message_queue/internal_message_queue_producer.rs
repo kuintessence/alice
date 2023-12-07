@@ -26,11 +26,11 @@ pub struct InternalMessageQueueProducer {
 
 #[async_trait::async_trait]
 impl MessageQueueProducer for InternalMessageQueueProducer {
-    async fn send(&self, content: &str, topic: Option<&str>) -> anyhow::Result<()> {
+    async fn send(&self, content: &str, topic:&str) -> anyhow::Result<()> {
         Ok(self
             .sender
             .send_async(InternalMessage {
-                target: topic.unwrap_or_default().to_string(),
+                target: topic.to_string(),
                 body: content.to_string(),
             })
             .await?)
@@ -42,11 +42,11 @@ impl<T> MessageQueueProducerTemplate<T> for InternalMessageQueueProducer
 where
     T: serde::Serialize + Send + Sync,
 {
-    async fn send_object(&self, content: &T, topic: Option<&str>) -> anyhow::Result<()> {
+    async fn send_object(&self, content: &T, topic: &str) -> anyhow::Result<()> {
         Ok(self
             .sender
             .send_async(InternalMessage {
-                target: topic.unwrap_or_default().to_string(),
+                target: topic.to_string(),
                 body: serde_json::to_string(content)?,
             })
             .await?)
