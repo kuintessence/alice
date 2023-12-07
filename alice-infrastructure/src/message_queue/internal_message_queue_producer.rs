@@ -91,7 +91,7 @@ where
         loop {
             match self.receiver.recv_async().await {
                 Ok(message) => {
-                    tracing::trace!("message received: {message:#?}");
+                    tracing::debug!("message received: {message:#?}");
                     match self.fn_mapper.get(&message.target) {
                         Some(x) => {
                             let sp = self.service_provider.clone();
@@ -107,7 +107,7 @@ where
                                 )
                             });
                         }
-                        None => tracing::warn!("No such service: {}", message.target),
+                        None => tracing::error!("No such service: {}", message.target),
                     }
                 }
                 Err(e) => tracing::error!("{e}"),

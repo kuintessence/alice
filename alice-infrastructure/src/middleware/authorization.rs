@@ -354,7 +354,7 @@ async fn parse_jwt_token_payload(
     let jwk_set = match key_storage.get(&payload.iss).await {
         Ok(x) => x,
         Err(e) => {
-            tracing::debug!("Get key first try failed: {e}, take second try.");
+            tracing::warn!("Get key first try failed: {e}, take second try.");
             key_storage.reload_keys(&payload.iss).await?
         }
     };

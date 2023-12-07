@@ -96,7 +96,7 @@ where
             )
             .unwrap();
         let mut stream = stream_consumer.stream();
-        tracing::info!("Kafka starting");
+        tracing::info!("Kafka consumer starting");
         loop {
             match stream.next().await {
                 Some(Ok(borrowed_message)) => {
@@ -122,7 +122,7 @@ where
                                 )
                             });
                         }
-                        None => tracing::warn!("No such service: {topic}"),
+                        None => tracing::error!("No such service: {topic}"),
                     }
                 }
                 Some(Err(kafka_error)) => match kafka_error {
