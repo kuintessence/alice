@@ -38,7 +38,7 @@ use crate::{
 pub struct AliceScopedConfig {
     pub user_info: Option<UserInfo>,
     pub device_info: Option<DeviceInfo>,
-    pub task_id: Option<TaskInfo>,
+    pub task_info: Option<TaskInfo>,
 }
 
 impl FromRequest for AliceScopedConfig {
@@ -54,13 +54,13 @@ impl FromRequest for AliceScopedConfig {
         Box::pin(async move {
             let user_info = req.extensions().get::<UserInfo>().cloned();
             let device_info = req.extensions().get::<DeviceInfo>().cloned();
-            let task_id = req.extensions().get::<TaskInfo>().cloned();
+            let task_info = req.extensions().get::<TaskInfo>().cloned();
 
             // tracing::info!("user_info: {user_info:?}, device_info: {device_info:?}");
             Ok(AliceScopedConfig {
                 user_info,
                 device_info,
-                task_id,
+                task_info,
             })
         })
     }
@@ -274,7 +274,7 @@ where
 
             let mut info_user_id = None;
             let mut info_device_name = None;
-            let mut info_task_id=None;
+            let mut info_task_id = None;
 
             if is_hpc {
                 if let Some(task_id) = req.headers().get("TaskId") {
@@ -307,7 +307,7 @@ where
             if let Some(device_name) = info_device_name {
                 info_msg.push_str(&format!(", device_name: {device_name}"));
             }
-            if let Some(task_id)=info_task_id{
+            if let Some(task_id) = info_task_id {
                 info_msg.push_str(&format!(", task_id: {task_id}"));
             }
 
