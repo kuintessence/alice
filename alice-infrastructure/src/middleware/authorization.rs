@@ -53,7 +53,7 @@ impl FromRequest for AliceScopedConfig {
         Box::pin(async move {
             let user_info = req.extensions().get::<UserInfo>().cloned();
             let device_info = req.extensions().get::<DeviceInfo>().cloned();
-            tracing::info!("user_info: {user_info:?}, device_info: {device_info:?}");
+            // tracing::info!("user_info: {user_info:?}, device_info: {device_info:?}");
             Ok(AliceScopedConfig {
                 user_info,
                 device_info,
@@ -256,6 +256,8 @@ where
                 return Ok(ServiceResponse::from_err(e_403, req.request().to_owned())
                     .map_into_right_body());
             }
+            let mut info_user_id = None;
+            let mut info_device_name = None;
             if is_hpc {
                 if let Some(task_id) = req.headers().get("TaskId") {
                     let user_id = match get_user_id(database, task_id)
@@ -269,12 +271,24 @@ where
                         }
                     };
                     req.extensions_mut().insert(UserInfo::new(user_id));
+                    info_user_id = Some(user_id);
                 }
+                info_device_name = Some(payload.preferred_username.to_owned());
                 req.extensions_mut().insert(DeviceInfo::from(payload));
             } else {
+                info_user_id = Some(payload.sub);
                 req.extensions_mut().insert(UserInfo::from(payload));
             }
-            tracing::info!("Handling {req_path}.");
+            let mut info_msg = String::new();
+            info_msg.push_str(&format!("Handling {req_path}"));
+            if let Some(user_id) = info_user_id {
+                info_msg.push_str(&format!(", user_id: {user_id}"));
+            }
+            if let Some(device_name) = info_device_name {
+                info_msg.push_str(&format!(", device_name: {device_name}"));
+            }
+
+            tracing::info!("{info_msg}");
             service.call(req).map_ok(|res| res.map_into_left_body()).await
         })
     }
@@ -354,7 +368,7 @@ async fn parse_jwt_token_payload(
     let jwk_set = match key_storage.get(&payload.iss).await {
         Ok(x) => x,
         Err(e) => {
-            tracing::warn!("Get key first try failed: {e}, take second try.");
+            tracing::warn!("Get jwk first try failed, take second try. - {e}");
             key_storage.reload_keys(&payload.iss).await?
         }
     };
