@@ -157,6 +157,7 @@ impl ResourceControlConfig {
                         "/file-storage/PreparePartialUploadFromNodeInstance".to_string(),
                         "/file-storage/PreparePartialUploadFromSnapshot".to_string(),
                         "/file-storage/PartialUpload".to_string(),
+                        "/file-storage/PartialUploadInfo".to_string(),
                         "/file-storage/FileDownloadUrl".to_string(),
                         "/file-storage/FileDownloadUrls".to_string(),
                         "/file-storage/RangelyDownloadFile".to_string(),
