@@ -72,6 +72,7 @@ where
         // 400、401、403 don't need to be localized.
         match status {
             400 | 401 | 403 => {
+                tracing::error!("Handling {req_path} - {co_error} - {status}");
                 let response = www_authen_response_builder
                     .status(match status {
                         400 => StatusCode::BAD_REQUEST,
@@ -81,30 +82,26 @@ where
                     })
                     .insert_header((actix_http::header::WWW_AUTHENTICATE, co_error.to_string()))
                     .finish();
-                tracing::error!("Handling {req_path}: {status}");
                 return Ok(ServiceResponse::new(new_req, response).map_into_right_body());
             }
             _ => {}
         };
 
-        let mut exception_status = 0;
         let new_res = if let Some(e) = res.error() {
             let co_e = e.as_error::<AliceError>();
             let body = BoxBody::new(
                 serde_json::to_string(&match co_e {
                     Some(e) => {
-                        exception_status = e.0.status();
+                        tracing::error!("Handling {req_path} - {e} - {}",e.0.status());
                         match e.0.localize(fluent_locale.as_ref()) {
                             Ok(r) => r,
                             Err(e) => {
                                 tracing::error!("{e}");
-                                exception_status = 500;
                                 fallback_response(&fluent_locale)
                             }
                         }
                     }
                     None => {
-                        exception_status = 500;
                         fallback_response(&fluent_locale)
                     }
                 })
@@ -118,7 +115,6 @@ where
         } else {
             ServiceResponse::new(new_req, res).map_into_left_body()
         };
-        tracing::error!("Exception response: {exception_status} for {req_path}.");
         Ok(new_res)
     });
 
@@ -126,6 +122,7 @@ where
 }
 
 fn fallback_response(locale: &AliceFluentLocale) -> LocalizedMsg {
+    tracing::warn!("Using fallback response.");
     LocalizedMsg {
         status: 500,
         message: match locale.text("internal-error") {
