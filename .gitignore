@@ -13,6 +13,5 @@ Cargo.lock
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
-# Neovim plugin neoconf.nvim settings
-# More information here https://github.com/folke/neoconf.nvim
-.neoconf.json
+# Neovim exrc
+.nvim.lua
