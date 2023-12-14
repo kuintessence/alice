@@ -112,11 +112,6 @@ impl From<Payload> for DeviceInfo {
     }
 }
 
-#[async_trait]
-pub trait UserIdRepository: Send + Sync {
-    async fn get_by_task_id(&self, task_id: &str) -> anyhow::Result<Uuid>;
-}
-
 pub struct JwtValidationMiddleware {
     key_storage: Arc<dyn KeyStorage>,
     config: crate::config::JwtValidationConfig,
