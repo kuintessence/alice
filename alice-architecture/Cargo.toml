@@ -2,6 +2,7 @@
 name = "alice-architecture"
 version = "0.1.0"
 edition = "2021"
+license.workspace = true
 
 [dependencies]
 alice-architecture-derive = { path = "../alice-architecture-derive", optional = true }

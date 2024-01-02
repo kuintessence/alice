@@ -2,6 +2,7 @@
 name = "alice-di"
 version = "0.1.0"
 edition = "2021"
+license.workspace = true
 
 [dependencies]
 alice-di-derive = { path = "../alice-di-derive" }

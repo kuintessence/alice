@@ -9,6 +9,9 @@ members = [
   "alice-web",
 ]
 
+[workspace.package]
+license = "AGPL-3.0"
+
 [workspace.dependencies.database-model]
 git = "https://github.com/kuintessence/database"
 
