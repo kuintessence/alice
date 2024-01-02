@@ -70,7 +70,7 @@ pub fn init_telemetry(config: &TelemetryConfig) -> anyhow::Result<()> {
             let tracer = opentelemetry_otlp::new_pipeline()
                 .tracing()
                 .with_exporter(exporter)
-                .install_batch(opentelemetry::runtime::Tokio)?;
+                .install_batch(opentelemetry_sdk::runtime::Tokio)?;
 
             TraceResult::Ok(tracing_opentelemetry::layer().with_tracer(tracer))
         })

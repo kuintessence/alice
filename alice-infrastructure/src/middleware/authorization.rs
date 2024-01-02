@@ -14,7 +14,6 @@ use actix_web::{
 };
 use alice_architecture::jwt_payload::Payload;
 use anyhow::{anyhow, Context};
-use async_trait::async_trait;
 use base64::{engine::general_purpose, Engine};
 use futures_util::{future::LocalBoxFuture, Future, TryFutureExt};
 use jsonwebtoken::{
