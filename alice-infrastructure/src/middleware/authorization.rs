@@ -350,7 +350,7 @@ async fn parse_jwt_token_payload(
     }
     if parts.len() < 2 && !parts[0].eq("Bearer") {
         return Err(AliceError::new(AliceCommonError::InvalidToken {
-            error_description: "Authorization header doesn't have 'Baerer' str.".to_string(),
+            error_description: "Authorization header doesn't have 'Bearer' str.".to_string(),
         }));
     }
     let token = match parts.get(1) {

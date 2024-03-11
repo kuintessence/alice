@@ -114,17 +114,17 @@ pub enum AliceCommonError {
         source: anyhow::Error,
     },
     #[error(
-        r#"Baerer realm="CO-COM",error="invalid_request",error_description="{error_description}""#
+        r#"Bearer realm="CO-COM",error="invalid_request",error_description="{error_description}""#
     )]
     #[status(400)]
     InvalidRequest { error_description: String },
     #[error(
-        r#"Baerer realm="CO-COM",error="invalid_token",error_description="{error_description}""#
+        r#"Bearer realm="CO-COM",error="invalid_token",error_description="{error_description}""#
     )]
     #[status(401)]
     InvalidToken { error_description: String },
     #[error(
-        r#"Baerer realm="CO-COM",error="insufficient_scope",error_description="{error_description}""#
+        r#"Bearer realm="CO-COM",error="insufficient_scope",error_description="{error_description}""#
     )]
     #[status(403)]
     InsufficientScope { error_description: String },

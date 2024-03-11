@@ -13,7 +13,7 @@ members = [
 license = "AGPL-3.0"
 
 [workspace.dependencies.database-model]
-git = "https://github.com/kuintessence/database"
+git = "https://git.lab.supercomputing.link/hpc-ng/computing-orchestration/team/team-be/database"
 
 [workspace.dependencies]
 alice-architecture = { path = "alice-architecture" }
@@ -29,7 +29,7 @@ syn = { version = "2", features = ["full", "extra-traits"] }
 quote = "1"
 proc-macro2 = "1"
 heck = "0.4"
-actix-i18n = { git = "https://github.com/kuintessence/actix-i18n.git" }
+actix-i18n = { git = "https://git.lab.supercomputing.link/hpc-ng/computing-orchestration/team/team-be/actix-i18n.git" }
 
 # for i18n enum
 thiserror = "1"
