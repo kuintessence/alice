@@ -13,7 +13,7 @@ members = [
 license = "AGPL-3.0"
 
 [workspace.dependencies.database-model]
-git = "https://git.lab.supercomputing.link/hpc-ng/computing-orchestration/team/team-be/database"
+git = "https://github.com/kuintessence/database"
 
 [workspace.dependencies]
 alice-architecture = { path = "alice-architecture" }
