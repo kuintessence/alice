@@ -29,7 +29,7 @@ syn = { version = "2", features = ["full", "extra-traits"] }
 quote = "1"
 proc-macro2 = "1"
 heck = "0.4"
-actix-i18n = { git = "https://git.lab.supercomputing.link/hpc-ng/computing-orchestration/team/team-be/actix-i18n.git" }
+actix-i18n = { git = "https://github.com/kuintessence/actix-i18n.git" }
 
 # for i18n enum
 thiserror = "1"
